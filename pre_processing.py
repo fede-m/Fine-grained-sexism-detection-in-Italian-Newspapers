@@ -58,12 +58,6 @@ def get_tokens_labels(spans: list, tokens: list, labels: list, label2id: default
                 labels_per_token[i] = label2id[label["label"]]
                 print(tokens[i])
 
-
-    # wp_tok = wp_tok = nltk.WordPunctTokenizer()
-    # for label in labels:
-    #     start_word = len(wp_tok.tokenize(doc[:label["start_offset"]]))
-    #     end_word = len(wp_tok.tokenize(doc[:label["end_offset"]]))
-
     return labels_per_token
 
 
@@ -73,15 +67,15 @@ def get_labels_ids(labels_json: str):
 
     label2id = {label["text"]: idx +1 for idx, label in enumerate(labels_list)}
     label2id["NA"] = 0
-    # id2label = {idx +1: label["text"] for idx, label in enumerate(labels_list)}
-    # id2label[0] = "NA"
+    id2label = {idx +1: label["text"] for idx, label in enumerate(labels_list)}
+    id2label[0] = "NA"
 
-    return label2id
+    return id2label,label2id
 
 
 def pre_processing(file_name:str, labels_json:str):
     docs = get_texts(file_name)
-    labels2ids = get_labels_ids(labels_json)
+    ids2labels, labels2ids = get_labels_ids(labels_json)
     final = {"train": []}
     wp_tok = nltk.WordPunctTokenizer()
     for doc in docs:
@@ -89,10 +83,9 @@ def pre_processing(file_name:str, labels_json:str):
         final_obj["text"] = wp_tok.tokenize(doc["text"])
         spans = list(wp_tok.span_tokenize(doc["text"]))
         final_obj["labels"] = get_tokens_labels(spans, final_obj["text"], doc["entities"], labels2ids)
-        # final_obj["labels"] = get_tokens_labels(doc, final_obj["text"],  doc["entities"], labels2ids)
         final["train"].append(final_obj)
 
-    return final
+    return final, ids2labels
 
 
 def main():
@@ -100,11 +93,13 @@ def main():
     parser.add_argument("--file_path", type=str, help="Specify the filepath of the JSONL file you want to pre-process")
     parser.add_argument("--labels", type=str, help="Specify the filepath of the JSON file containing the labels")
     args = parser.parse_args()
-    training_data = pre_processing(args.file_path, args.labels)
+    training_data, ids2labels  = pre_processing(args.file_path, args.labels)
 
     with open("output.json", mode="w", encoding="utf-8") as output:
         json.dump(training_data,output, ensure_ascii=False)
 
+    with open("id2labels.json", mode = "w", encoding="utf-8") as labels_file:
+            json.dump(ids2labels, labels_file, ensure_ascii=False)
 
 if __name__ == "__main__":
     main()
