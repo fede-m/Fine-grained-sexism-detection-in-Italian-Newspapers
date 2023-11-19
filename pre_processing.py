@@ -99,7 +99,7 @@ def main():
         json.dump(training_data,output, ensure_ascii=False)
 
     with open("id2labels.json", mode = "w", encoding="utf-8") as labels_file:
-            json.dump(ids2labels, labels_file, ensure_ascii=False)
+        json.dump(ids2labels, labels_file, ensure_ascii=False)
 
 if __name__ == "__main__":
     main()
