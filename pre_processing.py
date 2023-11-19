@@ -56,7 +56,6 @@ def get_tokens_labels(spans: list, tokens: list, labels: list, label2id: default
         for label in labels:
             if label["start_offset"] <= span[0] <= span[1]<= label["end_offset"]:
                 labels_per_token[i] = label2id[label["label"]]
-                print(tokens[i])
 
     return labels_per_token
 
@@ -80,9 +79,9 @@ def pre_processing(file_name:str, labels_json:str):
     wp_tok = nltk.WordPunctTokenizer()
     for doc in docs:
         final_obj = defaultdict()
-        final_obj["text"] = wp_tok.tokenize(doc["text"])
+        final_obj["words"] = wp_tok.tokenize(doc["text"])
         spans = list(wp_tok.span_tokenize(doc["text"]))
-        final_obj["labels"] = get_tokens_labels(spans, final_obj["text"], doc["entities"], labels2ids)
+        final_obj["labels"] = get_tokens_labels(spans, final_obj["words"], doc["entities"], labels2ids)
         final["train"].append(final_obj)
 
     return final, ids2labels
@@ -103,8 +102,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
 
 
 
