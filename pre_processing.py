@@ -8,7 +8,7 @@
 import argparse
 from collections import defaultdict
 import json
-
+import numpy as np
 import nltk
 
 
@@ -17,7 +17,7 @@ def get_texts(file_name:str):
     @:param The JSONL file name/path
     @:return The structure of the final object is:
         {
-        "text" : "",
+        "text" : str,
         "entities": [
             {
                 "id": int,
@@ -40,7 +40,6 @@ def get_texts(file_name:str):
     return documents
 
 
-# def get_tokens_labels(doc: str, tokens: list, labels: list, label2id: defaultdict):
 def get_tokens_labels(spans: list, tokens: list, labels: list, label2id: defaultdict):
     '''
     @:brief Start tokenizing the texts using nltk
@@ -51,11 +50,19 @@ def get_tokens_labels(spans: list, tokens: list, labels: list, label2id: default
     labels_per_token = [0]*len(spans)
     if not labels:
         return labels_per_token
-
+    print(len(labels))
     for i, span in enumerate(spans):
+        # print(tokens[i])
+        # print(span)
         for label in labels:
             if label["start_offset"] <= span[0] <= span[1]<= label["end_offset"]:
                 labels_per_token[i] = label2id[label["label"]]
+                print(label["label"] + ": " + tokens[i])
+                print("Span at 0: " + str(span[0]))
+                print("Span at 0: " + str(span[1]))
+                print("Start span: " + str(label["start_offset"]))
+                print("End span: " + str(label["end_offset"]))
+                break
 
     return labels_per_token
 
@@ -71,10 +78,13 @@ def get_labels_ids(labels_json: str):
 
     return id2label,label2id
 
-
 def pre_processing(file_name:str, labels_json:str):
+    #  Get documents and labels
     docs = get_texts(file_name)
     ids2labels, labels2ids = get_labels_ids(labels_json)
+
+    #  Create Dataset using K-Fold validation
+
     final = {"train": []}
     wp_tok = nltk.WordPunctTokenizer()
     for doc in docs:
@@ -92,8 +102,13 @@ def main():
     parser.add_argument("--file_path", type=str, help="Specify the filepath of the JSONL file you want to pre-process")
     parser.add_argument("--labels", type=str, help="Specify the filepath of the JSON file containing the labels")
     args = parser.parse_args()
-    training_data, ids2labels  = pre_processing(args.file_path, args.labels)
 
+    training_data, ids2labels = pre_processing(args.file_path, args.labels)
+
+    #  Upload the model to Hugging-Face
+
+
+    #  Or store it locally
     with open("output.json", mode="w", encoding="utf-8") as output:
         json.dump(training_data,output, ensure_ascii=False)
 
